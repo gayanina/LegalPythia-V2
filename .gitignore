@@ -130,3 +130,6 @@ dmypy.json
 
 # Folders
 best_models/
+
+# Files 
+.DS_Store
