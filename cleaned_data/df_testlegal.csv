@@ -1,0 +1,20 @@
+﻿sentence1,sentence2,gold_label
+It is necessary for a skilled person in the area of expertise of the patent to understand it. ,A patent has to be understood by an ordinary skilled person. ,contradiction
+The custody order has to be executed by the Secretary of State personally. ,The Secretary of State has to consider an interim custody order.,entailment
+The guidance that the Secretary of State gives most be authorized. ,Secretary of State`s guidance cannot be for an unauthorized purpose. ,entailment
+The question does not arise on the present case. ,The court can confiscate property under any circumstances. ,neutral
+A rule in article 4 determines the law of the agreement. ,There is a correct approach to determine the law of an arbitration agreement. ,entailment
+Title to land does not have to be used immediately by new owner and cannot be reverted. ,Title to land can be reverted to the original owner. ,contradiction
+"For diabilities that were not indicated at birth , the doctor cannot be sued",A doctor can be sued for not pointing to a possible disability at birth. ,contradiction
+It depends on the wording of the law if it has extra-territorial effect. ,The fraud office can require a foreigner to produce material held overseas. ,neutral
+"An entity, such as the Parole Board, that decides in a judicial manner is a court. ",The Parole Board should not be considered a court. ,contradiction
+The cover of a disease like Covid-19 lies within the insurance policies.,Business interruptions and their losses caused by a pandemic have to be covered by insurance companies. ,entailment
+"An entity, such as the Parole Board, that decides in a judicial manner is a court. ",The Parole Board should not be considered a court. ,contradiction
+"By bringing discriminatory proceedings against the barrister, she was indirectly discriminated against. ",Disciplinary actions against a barrister have a discriminatory effect. ,entailment
+A conflict between EU law and English domestic Law has to be resolved in favor of the former. ,The State Immunity Act 1978 is not consistent with European Law. ,neutral
+MTH failed to implement certain necessary constructions into the windfarms. ,MTH is liable for the failure of offshore windfarms. ,entailment
+The Latvian national has resided in the UK for over 3 years and is entitled. ,A Latvian national is entitled to receive state pension credit in the UK. ,entailment
+An anonymous person cannot be sued under a pseudonym. ,It is not possible to sue an unnamed defendant. ,entailment
+"The placement B for D would have been only justified if he would have to undergo medical treatment, which he did not have to. ",Placement B constituted a deprivation of liberty for D. ,entailment
+"Through the rape conducted by an employee, Kuoni breached the commercial contract with Mrs. X. ",Kuoni is responsible for the rape and assault by an employee to Mrs. X. ,entailment
+A loss caused by the accounting advice is in the scope of the duty of care. ,There is a duty of care when giving accounting advice. ,entailment
