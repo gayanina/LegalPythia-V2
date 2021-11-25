@@ -32,7 +32,7 @@ from transformers import AlbertTokenizer
 from transformers import AlbertForSequenceClassification, AdamW
 
 
-nlp = spacy.load('en_core_web_lg') # large needed for word vectors 
+nlp = spacy.load('en_core_web_sm') # large needed for word vectors 
 
 path = os.path.abspath(os.getcwd())
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
