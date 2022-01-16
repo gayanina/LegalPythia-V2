@@ -1,4 +1,5 @@
 from __future__ import unicode_literals
+from matplotlib import colors
 
 from nltk.util import pr
 
@@ -24,6 +25,9 @@ import nltk
 import spacy
 import pdfplumber
 import docx2txt
+import matplotlib.pyplot as plt
+import base64
+
 from annotated_text import annotated_text
 
 from torch.utils.data import Dataset, TensorDataset, DataLoader #SequentialSampler, RandomSampler
@@ -251,36 +255,45 @@ def main():
     userinputfiles = st.container() # updated st.beta_container() to st.container()
     userchoice = st.container() # updated st.beta_container() to st.container()
  
-    
+    # -- Default selector list
+    selector_list = ['Similarity %','Similarity and Contradition detection', 'Visualise Entities']
 
     with header:
-        st.title(' Welcome to Legal Pythia Demo !')
-        st.text('Here you get to upload two text files and  check for similarity or contradiction ')
+        st.image('/Users/gayanin/RA-Work/Legal Pythia/LegalPythia-V2/codes/res/header.jpeg')
+        st.title(' Welcome to Legal Pythia Demo!')
+        st.text(' Here you get to upload two text files and check for similarity or contradiction')
 
-    with steps:
-        st.subheader('The Three Step Process:')
-        st.markdown ('* ** Step 1:** Load document 1' )    
-        st.markdown ('* ** Step 2:** Load document 2' )
-        st.markdown ('* ** Step 3:** Choose Similarity %  or Similarity and Contradiction Detection or Visualisation')
+    # with steps:
+    #     st.subheader('The Three Step Process:')
+        
+    #     st.markdown ('* ** Step 1:** Load document 1' )    
+    #     st.markdown ('* ** Step 2:** Load document 2' )
+    #     st.markdown ('* ** Step 3:** Choose Similarity %  or Similarity and Contradiction Detection or Visualisation')
         
     
-    with userchoice:
-        userchoice = st.radio("Choose your comparison method",('Similarity % ','Similarity and Contradition detection', 'Visualise Entities'))
-        if userchoice == 'Similarity % ':
-                st.write('You have selected Similarity.')
-        if userchoice == 'Similarity and Contradition detection':
-            st.write('You have selected Similarity and Contradition detection.')
-        if userchoice == 'Visualise Entities':
-                st.write('\n You have selected Visualisation.')
+    # with userchoice:
+        # userchoice = st.radio("Choose your comparison method",('Similarity % ','Similarity and Contradition detection', 'Visualise Entities'))
+        # if userchoice == 'Similarity % ':
+        #         st.write('You have selected Similarity.')
+        # if userchoice == 'Similarity and Contradition detection':
+        #     st.write('You have selected Similarity and Contradition detection.')
+        # if userchoice == 'Visualise Entities':
+        #         st.write('\n You have selected Visualisation.')
         
-    with userinputfiles:
-       
-        sel_col, disp_col = st.columns(2) # updated st.beta_columns() to st.columns()
-        file1 = sel_col.file_uploader("Load your Document 1",type = ['txt','pdf','docx'])
-        file2 = sel_col.file_uploader("Load your Document 2",type = ['txt','pdf','docx'])
 
-        print("file1...................................",file1)
-        print("file2...............................",file2)
+        # selector = st.sidebar.selectbox('Selector', selector_list)
+
+    with userinputfiles and userchoice:
+       
+        # sel_col, disp_col = st.sidebar.columns(2) # updated st.beta_columns() to st.columns()
+        file1 = st.sidebar.file_uploader("Upload first document", type = ['txt','pdf','docx'])
+        file2 = st.sidebar.file_uploader("Upload second document", type = ['txt','pdf','docx'])
+
+        print("Document1...................................",file1)
+        print("Document2...............................",file2)
+
+        userchoice = st.sidebar.selectbox('Setect the feature function', selector_list)
+        # st.write('You selected:', userchoice)
 
         # if file1 is not None:
         #     premise_text = file1.read()       
@@ -298,6 +311,7 @@ def main():
             else:
                 premise_text = file1.read()       
             premises = nltk.sent_tokenize(premise_text.decode('utf8')) # bytes to string
+            
         if file2 is not None:
             if 'pdf' in file2.name:
                hypothesis_text = pdf_to_text(file2) 
@@ -307,14 +321,34 @@ def main():
                 hypothesis_text = file2.read()             
             hypotheses = nltk.sent_tokenize(hypothesis_text.decode('utf8')) # bytes to string
 
-        if(file1 is not None) and  (file2 is not None) and userchoice == 'Similarity % ':                       
+        if(file1 is not None) and  (file2 is not None) and userchoice == 'Similarity %':                       
            sim = calculate_similarity_percentage(premise_text.decode('utf8'),hypothesis_text.decode('utf8'))
+        #    st.write(sim)
            sim_percent = "{:.0%}".format(sim)
-           st.write ("\n The similarity is ", sim_percent)
+           st.write ("\n The similarity of two documents is ", sim_percent)
+           sim_p = 1 - sim
+           #draw a pie chart
+           plot_labels = 'Similarity %', 'Contradiction %'
+           plot_sizes = [sim, sim_p]
+        #    explode = (0.1, 0) 
+           colours = ['#81ef7d','#ea696d']
+    
+           fig1, ax1 = plt.subplots()
+           ax1.pie(plot_sizes, colors=colours, labels=plot_labels, autopct='%1.1f%%',
+           shadow=True, startangle=90)
+           ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+
+           st.pyplot(fig1, transparent=True)
            
         if(file1 is not None) and  (file2 is not None) and userchoice == 'Similarity and Contradition detection':         
-            st.text('Both files uploaded.Checking Similarity and Contradictions...........')
-            df_output = pd.DataFrame(columns = ['premise','hypothesis','prediction'])
+            st.text('File upload successful!.')
+            st.text('Checking for Similarity and Contradictions...')
+            my_bar = st.progress(0)
+
+            for percent_complete in range(100):
+                time.sleep(0.05)
+            my_bar.progress(percent_complete + 1)
+            df_output = pd.DataFrame(columns = ['premise', 'hypothesis', 'prediction'])
                              
             row_count = 0
             
@@ -327,29 +361,47 @@ def main():
             for premise in premises:
                 for hypothesis in hypotheses:
                     outcome = check_similarity_contradiction(premise, hypothesis) 
-                    row = {'premise':[premise], 'hypothesis':[hypothesis],'prediction':[outcome]}
+                    row = {'premise':premise, 'hypothesis':hypothesis,'prediction':[outcome]}
                     row_count = row_count + 1
                     df_output =  df_output.append( row , ignore_index=True)
                     print("Row = ", row)
                     
                      # Update the progress bar 
-                    checking_text.text(f'Processing Similarity and Contradiction detection...  {row_count} of {totalCount}')
+                    checking_text.text(f'Processing Similarity and Contradiction Detection...  {row_count} of {totalCount}')
                     bar.progress((row_count/totalCount))
                     time.sleep(0.1)
                
             streamlit_df = pd.DataFrame(df_output)
             df_output.to_csv('predictions.csv')    
             st.dataframe(streamlit_df.style.apply(styler))
-        
+            
+            @st.cache
+            def convert_df_to_csv(df):
+                # IMPORTANT: Cache the conversion to prevent computation on every rerun
+                return df.to_csv().encode('utf-8')
+
+
+            st.download_button(
+                label="Download data as CSV",
+                data=convert_df_to_csv(streamlit_df),
+                file_name='document_comparison.csv',
+                mime='text/csv',
+            )
+
         if(file1 is not None) and  (file2 is not None) and userchoice == 'Visualise Entities':         
-            st.write('Entity Visualisation for File1: \n')
+            st.write('Document 1: \n')
             premise_tokens = visualise_ner(premise_text.decode('utf8'))
             annotated_text(*premise_tokens)
             st.write('\n')
-            st.write('Entity Visualisation for File2: \n')
+            st.write('Document 2: \n')
             hypothesis_tokens = visualise_ner(hypothesis_text.decode('utf8'))
             annotated_text(*hypothesis_tokens)
             st.write('\n')
+    
+    if "load_state" not in st.session_state:
+       st.session_state.load_state = False
+
+timestr = time.strftime("%Y%m%d-%H%M%S")
 
 if __name__ == "__main__":
     main()

@@ -1,0 +1,5 @@
+,premise,hypothesis,prediction
+0,it is nighttime.,it is nighttime.,['entailment']
+1,it is nighttime.,a lady walks down the street.,['entailment']
+2,a woman holding a scruffy cat.,it is nighttime.,['entailment']
+3,a woman holding a scruffy cat.,a lady walks down the street.,['entailment']
