@@ -259,7 +259,8 @@ def main():
     selector_list = ['Similarity %','Similarity and Contradition detection', 'Visualise Entities']
 
     with header:
-        st.image('/Users/gayanin/RA-Work/Legal Pythia/LegalPythia-V2/codes/res/legalpythiaheader.jpg')
+        # st.image('/Users/gayanin/RA-Work/Legal Pythia/LegalPythia-V2/codes/res/legalpythiaheader.jpg')
+        st.image('codes/res/legalpythiaheader.jpg')
         st.title(' Welcome to the Live Demo!')
         st.text(' Here you get to upload two text files and check for similarity or contradiction')
 
