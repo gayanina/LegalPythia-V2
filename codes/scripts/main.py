@@ -235,17 +235,46 @@ def visualise_ner(text):
 
     return tokens
 
-# def visualise_ner(file1, file2):
-#     text1 = nlp(file1)
-#     text2 = nlp(file2)
+def in_list(list_of_lists, item, ls_):
+    FLAG = 0
+    for list_ in list_of_lists:
+        if item in list_:
+            FLAG =1
+    if (FLAG ==1):
+        st.subheader(item)
+        st.write(*ls_, sep=', ')
 
-#     annotated_text(text1)
-#     annotated_text(text2)
+def print_ner(json_text):
+    ls_org = []
+    ls_per = []
+    ls_gpe = []
+    ls_loc = []
+    ls_date = []
+    ls_mon = []
+    rest = []
 
-    
+    for ls in json_text:
+        if (ls[1] == 'ORG'):
+            ls_org.append(ls[0])
+        if (ls[1] == 'PERSON'):
+            ls_per.append(ls[0])
+        if (ls[1] == 'GPE'):
+            ls_gpe.append(ls[0])
+        if (ls[1] == 'LOC'):
+            ls_loc.append(ls[0])
+        if (ls[1] == 'DATE'):
+            ls_date.append(ls[0])
+        if (ls[1] == 'MONEY'):
+            ls_mon.append(ls[0])
+        else:
+            rest.append(ls)
 
-
-
+    in_list(json_text, "ORG", ls_org)
+    in_list(json_text, "PERSON", ls_per)
+    in_list(json_text, "GPE", ls_gpe)
+    in_list(json_text, "LOC", ls_loc)
+    in_list(json_text, "DATE", ls_date)
+    in_list(json_text, "MONEY", ls_mon)
 
 # ''''''''''''''''''''''''''' SECTION 4. THE MAIN APP CODE ''''''''''''''''''''' # commented for local testing
        
@@ -256,7 +285,7 @@ def main():
     userchoice = st.container() # updated st.beta_container() to st.container()
  
     # -- Default selector list
-    selector_list = ['Similarity %','Similarity and Contradition detection', 'Visualise Entities']
+    selector_list = ['Similarity %','Similarity and Contradition Detection', 'Visualise Entities']
 
     with header:
         # st.image('/Users/gayanin/RA-Work/Legal Pythia/LegalPythia-V2/codes/res/legalpythiaheader.jpg')
@@ -264,29 +293,8 @@ def main():
         st.title(' Welcome to the Live Demo!')
         st.text(' Here you get to upload two text files and check for similarity or contradiction')
 
-    # with steps:
-    #     st.subheader('The Three Step Process:')
-        
-    #     st.markdown ('* ** Step 1:** Load document 1' )    
-    #     st.markdown ('* ** Step 2:** Load document 2' )
-    #     st.markdown ('* ** Step 3:** Choose Similarity %  or Similarity and Contradiction Detection or Visualisation')
-        
-    
-    # with userchoice:
-        # userchoice = st.radio("Choose your comparison method",('Similarity % ','Similarity and Contradition detection', 'Visualise Entities'))
-        # if userchoice == 'Similarity % ':
-        #         st.write('You have selected Similarity.')
-        # if userchoice == 'Similarity and Contradition detection':
-        #     st.write('You have selected Similarity and Contradition detection.')
-        # if userchoice == 'Visualise Entities':
-        #         st.write('\n You have selected Visualisation.')
-        
-
-        # selector = st.sidebar.selectbox('Selector', selector_list)
-
     with userinputfiles and userchoice:
-       
-        # sel_col, disp_col = st.sidebar.columns(2) # updated st.beta_columns() to st.columns()
+
         file1 = st.sidebar.file_uploader("Upload first document", type = ['txt','pdf','docx'])
         file2 = st.sidebar.file_uploader("Upload second document", type = ['txt','pdf','docx'])
 
@@ -294,15 +302,6 @@ def main():
         print("Document2...............................",file2)
 
         userchoice = st.sidebar.selectbox('Setect the feature function', selector_list)
-        # st.write('You selected:', userchoice)
-
-        # if file1 is not None:
-        #     premise_text = file1.read()       
-        #     premises = nltk.sent_tokenize(premise_text.decode('utf8')) # bytes to string
-
-        # if file2 is not None:
-        #     hypothesis_text = file2.read()           
-        #     hypotheses = nltk.sent_tokenize(hypothesis_text.decode('utf8')) # bytes to string
 
         if file1 is not None:
             if 'pdf' in file1.name:
@@ -341,7 +340,7 @@ def main():
 
            st.pyplot(fig1, transparent=True)
            
-        if(file1 is not None) and  (file2 is not None) and userchoice == 'Similarity and Contradition detection':         
+        if(file1 is not None) and  (file2 is not None) and userchoice == 'Similarity and Contradition Detection':         
             st.text('File upload successful!.')
             st.text('Checking for Similarity and Contradictions...')
             my_bar = st.progress(0)
@@ -394,10 +393,18 @@ def main():
             premise_tokens = visualise_ner(premise_text.decode('utf8'))
             annotated_text(*premise_tokens)
             st.write('\n')
+            if st.button('Document 1 Entities'):
+                print_ner(premise_tokens)
+            else:
+                st.write('')    
             st.write('Document 2: \n')
             hypothesis_tokens = visualise_ner(hypothesis_text.decode('utf8'))
             annotated_text(*hypothesis_tokens)
             st.write('\n')
+            if st.button('Document 2 Entities'):
+                print_ner(hypothesis_tokens)
+            else:
+                st.write('')
     
     if "load_state" not in st.session_state:
        st.session_state.load_state = False
