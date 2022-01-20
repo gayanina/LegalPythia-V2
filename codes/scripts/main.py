@@ -36,7 +36,8 @@ from transformers import AlbertTokenizer
 from transformers import AlbertForSequenceClassification, AdamW
 
 
-nlp = spacy.load('en_core_web_sm') # large needed for word vectors 
+# nlp = spacy.load('en_core_web_sm') # large needed for word vectors 
+nlp = spacy.load('en_core_web_lg') # large
 
 path = os.path.abspath(os.getcwd())
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -196,9 +197,7 @@ def styler(col):
                 bg_map.append( 'background-color:LightGreen')
         else:
                 bg_map.append('')
-    
-        
-    #print (bg_map)
+
     return bg_map
 
 def pdf_to_text(file):
