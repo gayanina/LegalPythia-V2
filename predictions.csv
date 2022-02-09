@@ -1,17 +1,5 @@
 ,premise,hypothesis,prediction
-0,it is nighttime.,the dogs are adopted.,['neutral']
-1,it is nighttime.,three men are a dancer.,['neutral']
-2,it is nighttime.,the man is outside.,['neutral']
-3,it is nighttime.,a lady walks down the street.,['neutral']
-4,a woman holding a scruffy cat.,the dogs are adopted.,['neutral']
-5,a woman holding a scruffy cat.,three men are a dancer.,['neutral']
-6,a woman holding a scruffy cat.,the man is outside.,['neutral']
-7,a woman holding a scruffy cat.,a lady walks down the street.,['entailment']
-8,two people are racing.,the dogs are adopted.,['neutral']
-9,two people are racing.,three men are a dancer.,['neutral']
-10,two people are racing.,the man is outside.,['neutral']
-11,two people are racing.,a lady walks down the street.,['neutral']
-12,the firefighters are trying to save a child.,the dogs are adopted.,['neutral']
-13,the firefighters are trying to save a child.,three men are a dancer.,['neutral']
-14,the firefighters are trying to save a child.,the man is outside.,['neutral']
-15,the firefighters are trying to save a child.,a lady walks down the street.,['neutral']
+0,the dogs are adopted.,it is nighttime.,contradiction
+1,the dogs are adopted.,it is night time.,neutral
+2,the dogs are not adopted.,it is nighttime.,neutral
+3,the dogs are not adopted.,it is night time.,neutral

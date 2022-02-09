@@ -1,4 +1,5 @@
 from __future__ import unicode_literals
+from io import StringIO
 from matplotlib import colors
 
 from nltk.util import pr
@@ -27,6 +28,8 @@ import pdfplumber
 import docx2txt
 import matplotlib.pyplot as plt
 import base64
+import st_state_patch
+import numpy as np
 
 from annotated_text import annotated_text
 
@@ -40,19 +43,19 @@ from transformers import AlbertForSequenceClassification, AdamW
 nlp = spacy.load('en_core_web_lg') # large
 
 path = os.path.abspath(os.getcwd())
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-print ("\n >>> device used: ",device)
-print ("\n")
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+print ('\n >>> device used: ', device)
+print ('\n')
 
 
-device_type = "cuda:0" if torch.cuda.is_available() else "cpu"
+device_type = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 
 
 
 # ''''''''''''''''''''''''''' SECTION 2. THE MODEL ''''''''''''''''''''''''''''' # commented for local testing
 
 
-model = AlbertForSequenceClassification.from_pretrained("albert-base-v2", num_labels=3)
+model = AlbertForSequenceClassification.from_pretrained('albert-base-v2', num_labels=3)
 model.to(device)
 
 param_optimizer = list(model.named_parameters())
@@ -67,8 +70,11 @@ optimizer_grouped_parameters = [
 #  contains all of the hyperparemeter information for training loop 
 optimizer = AdamW(optimizer_grouped_parameters, lr=2e-5, correct_bias=False)
 
-epoch_to_resume = 4
-path_to_model_saved = 'model_epoch{}.pt'.format( epoch_to_resume)
+# epoch_to_resume = 4
+epoch_to_resume = 6
+# path_to_model_saved = 'model_epoch{}.pt'.format( epoch_to_resume)
+path_to_model_saved = 'best_models/'+'model_epoch{}.pt'.format(epoch_to_resume)
+print('debug', path_to_model_saved)
 if os.path.isfile(path_to_model_saved):
     print("\n >>> loading checkpoint '{}'".format(path_to_model_saved))
 
@@ -153,12 +159,11 @@ class SNLIDataAlbertPredictor(Dataset):
     )
     return input_loader
 
-# code for checking similarity and contradiction
-     
+# code for checking similarity and contradiction    
 def check_similarity_contradiction(sentence1, sentence2):
            
        data_input = {'premise':[sentence1], 'hypothesis':[sentence2]}
-       df_input = pd.DataFrame(data_input, columns = ['premise','hypothesis'])
+       df_input = pd.DataFrame(data_input, columns = ['premise', 'hypothesis'])
        
        input_dataset = SNLIDataAlbertPredictor(df_input)
        input_loader = input_dataset.get_data_loaders(batch_size=1)
@@ -174,10 +179,10 @@ def check_similarity_contradiction(sentence1, sentence2):
        softmax =torch.log_softmax(prediction, dim=1)
        pred =softmax.argmax(dim=1)
        
-       target_map = {0: 'entailment',1:'contradiction',2:'neutral'}
+       target_map = {0: 'entailment', 1:'contradiction', 2:'neutral'}
 
        
-       if device_type == "cpu":
+       if device_type == 'cpu':
           outcome = target_map[pred.data.cpu().numpy()[0]]
        else:
            outcome = target_map[pred[0]]  # modified to get value from tensor
@@ -217,22 +222,27 @@ def visualise_ner(text):
     tokens = []
     doc=nlp(text)
     for token in doc:
-        if (token.ent_type_ == "PERSON"):
-            tokens.append((token.text, "PERSON", "#faa"))
-        elif (token.ent_type_ == "LOC"):
-            tokens.append((token.text, "LOC", "#fda"))
-        elif (token.ent_type_ == "GPE"):
-            tokens.append((token.text, "GPE", "#be2"))
-        elif (token.ent_type_ == "ORG"):
-            tokens.append((token.text, "ORG", "#0cf"))
-        elif (token.ent_type_ == "DATE"):
-            tokens.append((token.text, "DATE", "#fd1"))
-        elif (token.ent_type_ == "MONEY"):
-            tokens.append((token.text, "MONEY", "#f1d"))    
+        if (token.ent_type_ == 'PERSON'):
+            tokens.append((token.text, 'PERSON', '#faa'))
+        elif (token.ent_type_ == 'LOC'):
+            tokens.append((token.text, 'LOC', '#fda'))
+        elif (token.ent_type_ == 'GPE'):
+            tokens.append((token.text, 'GPE', '#be2'))
+        elif (token.ent_type_ == 'ORG'):
+            tokens.append((token.text, 'ORG', '#0cf'))
+        elif (token.ent_type_ == 'DATE'):
+            tokens.append((token.text, 'DATE', '#fd1'))
+        elif (token.ent_type_ == 'MONEY'):
+            tokens.append((token.text, 'MONEY', '#f1d'))    
         else:
-            tokens.append(" " + token.text + " ")
+            tokens.append(' ' + token.text + ' ')
 
     return tokens
+
+@st.cache(allow_output_mutation=True)
+def convert_df_to_csv(df):
+    # IMPORTANT: Cache the conversion to prevent computation on every rerun
+    return df.to_csv().encode('utf-8')
 
 def in_list(list_of_lists, item, ls_):
     FLAG = 0
@@ -240,7 +250,18 @@ def in_list(list_of_lists, item, ls_):
         if item in list_:
             FLAG =1
     if (FLAG ==1):
-        st.subheader(item)
+        if (item == 'ORG'):
+            st.subheader('Organisations')
+        elif (item == 'PERSON'):
+            st.subheader('Person Entities')
+        elif (item == 'GPE'):
+            st.subheader('Geopolitical Entities')
+        elif (item == 'LOC'):
+            st.subheader('Locations')
+        elif (item == 'DATE'):
+            st.subheader('Dates')
+        elif (item == 'MONEY'):
+            st.subheader('Monetary Entities')
         st.write(*ls_, sep=', ')
 
 def print_ner(json_text):
@@ -268,15 +289,62 @@ def print_ner(json_text):
         else:
             rest.append(ls)
 
-    in_list(json_text, "ORG", ls_org)
-    in_list(json_text, "PERSON", ls_per)
-    in_list(json_text, "GPE", ls_gpe)
-    in_list(json_text, "LOC", ls_loc)
-    in_list(json_text, "DATE", ls_date)
-    in_list(json_text, "MONEY", ls_mon)
+    in_list(json_text, 'ORG', ls_org)
+    in_list(json_text, 'PERSON', ls_per)
+    in_list(json_text, 'GPE', ls_gpe)
+    in_list(json_text, 'LOC', ls_loc)
+    in_list(json_text, 'DATE', ls_date)
+    in_list(json_text, 'MONEY', ls_mon)
+
+def print_lines(file_name, search_str):
+    f=open(file_name)
+    lines=f.readlines()
+
+    num_lines = sum(1 for line in open(file_name))
+    num_lines = len(lines)
+
+    indices = [i for i, s in enumerate(lines) if search_str in s] 
+    index = indices[0]
+      
+    st.write('-------------------------------------------------------')
+    if (num_lines >= 3):
+        if (index ==0):
+            st.write(lines[index])
+            st.write(lines[index+1])
+        elif (index >=1):
+            st.write(lines[index-1])
+            st.write(lines[index])
+            st.write(lines[index+1])
+        elif (index == (num_lines-1)):
+            st.write(lines[index])
+            st.write(lines[index-1])
+    elif (num_lines == 2):
+        if(index == 0):
+            st.write(lines[index])
+            st.write(lines[index+1])
+        elif (index == 1): 
+            st.write (lines[index])
+    st.write('-------------------------------------------------------')
+
+def save_file(uploaded_file):
+    if uploaded_file is not None:
+        # To convert to a string based IO:
+        stringio = StringIO(uploaded_file.getvalue().decode('utf-8'))
+        # To read file as string:
+        string_data = stringio.read()
+        # st.write(string_data)
+        with open('temp/'+uploaded_file.name, 'w') as text_file:
+            text_file.write(string_data)
+            
+def file_to_df(file_name):
+    f=open(file_name)
+    lines=f.readlines()
+    df = pd.DataFrame({'premise':lines})
+    return df
+
 
 # ''''''''''''''''''''''''''' SECTION 4. THE MAIN APP CODE ''''''''''''''''''''' # commented for local testing
-       
+
 def main():
     header = st.container() # updated st.beta_container() to st.container()
     steps = st.container() # updated st.beta_container() to st.container()
@@ -287,18 +355,17 @@ def main():
     selector_list = ['Similarity %','Similarity and Contradition Detection', 'Visualise Entities']
 
     with header:
-        # st.image('/Users/gayanin/RA-Work/Legal Pythia/LegalPythia-V2/codes/res/legalpythiaheader.jpg')
         st.image('codes/res/legalpythiaheader.jpg')
         st.title(' Welcome to the Live Demo!')
         st.text(' Here you get to upload two text files and check for similarity or contradiction')
 
     with userinputfiles and userchoice:
 
-        file1 = st.sidebar.file_uploader("Upload first document", type = ['txt','pdf','docx'])
-        file2 = st.sidebar.file_uploader("Upload second document", type = ['txt','pdf','docx'])
+        file1 = st.sidebar.file_uploader('Upload first document', type = ['txt','pdf','docx'])
+        file2 = st.sidebar.file_uploader('Upload second document', type = ['txt','pdf','docx'])
 
-        print("Document1...................................",file1)
-        print("Document2...............................",file2)
+        save_file(file1)
+        save_file(file2)
 
         userchoice = st.sidebar.selectbox('Setect the feature function', selector_list)
 
@@ -322,14 +389,12 @@ def main():
 
         if(file1 is not None) and  (file2 is not None) and userchoice == 'Similarity %':                       
            sim = calculate_similarity_percentage(premise_text.decode('utf8'),hypothesis_text.decode('utf8'))
-        #    st.write(sim)
-           sim_percent = "{:.0%}".format(sim)
-           st.write ("\n The similarity of two documents is ", sim_percent)
+           sim_percent = '{:.0%}'.format(sim)
+           st.write ('\n The similarity of two documents is ', sim_percent)
            sim_p = 1 - sim
            #draw a pie chart
            plot_labels = 'Similarity %', 'Contradiction %'
-           plot_sizes = [sim, sim_p]
-        #    explode = (0.1, 0) 
+           plot_sizes = [sim, sim_p] 
            colours = ['#81ef7d','#ea696d']
     
            fig1, ax1 = plt.subplots()
@@ -338,10 +403,9 @@ def main():
            ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
 
            st.pyplot(fig1, transparent=True)
-           
+ 
         if(file1 is not None) and  (file2 is not None) and userchoice == 'Similarity and Contradition Detection':         
-            st.text('File upload successful!.')
-            st.text('Checking for Similarity and Contradictions...')
+            st.text('Loading...')
             my_bar = st.progress(0)
 
             for percent_complete in range(100):
@@ -360,32 +424,68 @@ def main():
             for premise in premises:
                 for hypothesis in hypotheses:
                     outcome = check_similarity_contradiction(premise, hypothesis) 
-                    row = {'premise':premise, 'hypothesis':hypothesis,'prediction':[outcome]}
+                    row = {'premise':premise, 'hypothesis':hypothesis,'prediction':outcome}
                     row_count = row_count + 1
                     df_output =  df_output.append( row , ignore_index=True)
-                    print("Row = ", row)
+                    print('Row = ', row)
                     
                      # Update the progress bar 
-                    checking_text.text(f'Processing Similarity and Contradiction Detection...  {row_count} of {totalCount}')
+                    checking_text.text(f'Processing...  {row_count} of {totalCount}')
                     bar.progress((row_count/totalCount))
                     time.sleep(0.1)
                
             streamlit_df = pd.DataFrame(df_output)
+
             df_output.to_csv('predictions.csv')    
-            st.dataframe(streamlit_df.style.apply(styler))
             
-            @st.cache
-            def convert_df_to_csv(df):
-                # IMPORTANT: Cache the conversion to prevent computation on every rerun
-                return df.to_csv().encode('utf-8')
+            #create new dataframe column for action button
+            streamlit_df['action'] = ''
 
+            # view dataframe 
+            # st.dataframe(streamlit_df.style.apply(styler))
 
+            current_premise = ''
+            current_hypothesis = ''
+
+            #button click inside table
+            colms = st.columns(4)
+            fields = ['premise', 'hypothesis', 'prediction', 'action']
+            for col, field_name in zip(colms, fields):
+                # header
+                col.write(field_name)
+
+            for x, premise in enumerate(streamlit_df['premise']):
+                col2, col3, col4, col5 = st.columns(4)
+                col2.write(streamlit_df['premise'][x]) 
+                col3.write(streamlit_df['hypothesis'][x])
+                col4.write(streamlit_df['prediction'][x])
+                bg_map = []
+                if streamlit_df['prediction'][x] == 'contradiction' :
+                    bg_map.append ('background-color:LightCoral')
+                elif streamlit_df['prediction'][x] == 'entailment' :
+                    bg_map.append( 'background-color:LightGreen')
+                else:
+                    bg_map.append('')
+                col5.write(streamlit_df['action'][x])  
+                disable_status = streamlit_df['action'][x]  # flexible type of button
+                button_type = 'Submit' if disable_status else 'Load Document'
+                button_phold = col5.empty()  # create a placeholder
+                do_action = button_phold.button(button_type, key=x)
+                 #view text in document
+                if do_action:
+                    pass # do some action with a row's data
+                    button_phold.empty()  #  remove button
+                    if file1 is not None:
+                        print_lines('temp/'+file1.name, current_premise)
+
+            # download button
             st.download_button(
-                label="Download data as CSV",
-                data=convert_df_to_csv(streamlit_df),
+                label='Download data as CSV',
+                data=convert_df_to_csv(streamlit_df[['premise', 'hypothesis', 'prediction']]),
                 file_name='document_comparison.csv',
                 mime='text/csv',
             )
+
 
         if(file1 is not None) and  (file2 is not None) and userchoice == 'Visualise Entities':         
             st.write('Document 1: \n')
@@ -405,10 +505,10 @@ def main():
             else:
                 st.write('')
     
-    if "load_state" not in st.session_state:
+    if 'load_state' not in st.session_state:
        st.session_state.load_state = False
 
-timestr = time.strftime("%Y%m%d-%H%M%S")
+timestr = time.strftime('%Y%m%d-%H%M%S')
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
