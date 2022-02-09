@@ -132,3 +132,6 @@ dmypy.json
 
 # Files 
 .DS_Store
+best_models/model_LegalBert_epoch9.pt
+best_models/SVM_clf_train_val.pkl
+best_models/train_val.pipeline
