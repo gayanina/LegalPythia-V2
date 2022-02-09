@@ -28,7 +28,6 @@ import pdfplumber
 import docx2txt
 import matplotlib.pyplot as plt
 import base64
-import st_state_patch
 import numpy as np
 
 from annotated_text import annotated_text
