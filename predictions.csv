@@ -1,5 +1,5 @@
 ,premise,hypothesis,prediction
-0,the dogs are adopted.,it is nighttime.,contradiction
-1,the dogs are adopted.,it is night time.,neutral
-2,the dogs are not adopted.,it is nighttime.,neutral
-3,the dogs are not adopted.,it is night time.,neutral
+0,It is necessary for a skilled person in the area of expertise of the patent to understand it.,A patent has to be understood by an ordinary skilled person.,entailment
+1,It is necessary for a skilled person in the area of expertise of the patent to understand it.,The Secretary of State has to consider an interim custody order.,contradiction
+2,The custody order has to be executed by the Secretary of State personally.,A patent has to be understood by an ordinary skilled person.,entailment
+3,The custody order has to be executed by the Secretary of State personally.,The Secretary of State has to consider an interim custody order.,entailment

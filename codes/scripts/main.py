@@ -327,8 +327,23 @@ def print_lines(file_name, search_str):
 
 def save_file(uploaded_file):
     if uploaded_file is not None:
+        stringio = ''
         # To convert to a string based IO:
-        stringio = StringIO(uploaded_file.getvalue().decode('utf-8'))
+        # pdf files
+        if 'pdf' in uploaded_file.name:
+            file_ = pdf_to_text(uploaded_file)
+            st.write('pfd:',file_.decode('utf-8'))
+            stringio = StringIO(file_.decode('utf-8'))
+            st.write('st_pdf',stringio)
+        # docx files
+        if 'doc' in uploaded_file.name:
+            file_ = doc_to_text(uploaded_file)
+            st.write('doc:',file_.decode('utf-8'))
+            stringio = StringIO(file_.decode('utf-8'))
+        # txt files
+        if 'txt' in uploaded_file.name:
+            stringio = StringIO(uploaded_file.getvalue().decode('utf-8'))
+            st.write('txt',stringio)
         # To read file as string:
         string_data = stringio.read()
         # st.write(string_data)
